@@ -28,7 +28,7 @@ app.post("/api/seo", async (req, res) => {
     const author =
       $('meta[name="author"]').attr("content") || "Meta Author Etiketi eksik";
     const robots =
-      $('meta[name="robots"]').attr("content") || "Meta Robots Etiketi eksik";
+      $('meta[name="robots"]').attr("content") || "Meta Robots Etiketi yok";
     const publisher =
       $('meta[name="publisher"]').attr("content") ||
       "Meta Publisher Etiketi eksik";
@@ -64,9 +64,17 @@ app.post("/api/seo", async (req, res) => {
     });
 
     // Yapılandırılmış veri
-    const structuredData =
-      $('script[type="application/ld+json"]').html() ||
-      "Yapılandırılmış Veri yok";
+    const structuredData = [];
+    $('script[type="application/ld+json"]').each((index, element) => {
+      const jsonData = $(element).html();
+      if (jsonData) {
+        structuredData.push(jsonData);
+      }
+    });
+    const structuredDataResult =
+      structuredData.length > 0
+        ? structuredData.join(", ")
+        : "Yapılandırılmış Veri yok";
 
     // 404 sayfası kontrolü
     const notFound =
@@ -153,6 +161,7 @@ app.post("/api/seo", async (req, res) => {
       wordFreq[word] = (wordFreq[word] || 0) + 1;
     });
 
+    
     const analysis = {
       title: title || "Meta Title Etiketi eksik",
       description: description || "Meta Description Etiketi eksik",
@@ -168,7 +177,7 @@ app.post("/api/seo", async (req, res) => {
       language,
       headings,
       externalLinks,
-      structuredData,
+      structuredData: structuredDataResult,
       notFound,
       fontSizes: [...new Set(fontSizes)],
       iframes,
